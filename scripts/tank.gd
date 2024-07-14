@@ -8,7 +8,10 @@ var turningAxis := 0.0
 
 var targetDir := 0.0
 
-
+@rpc("any_peer", "call_local", "reliable", 0)
+func init(pos: Vector2):
+	if multiplayer.get_remote_sender_id() == 1:
+		position = pos
 
 func _enter_tree():
 	set_multiplayer_authority(str(name).to_int())

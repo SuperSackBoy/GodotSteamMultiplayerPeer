@@ -18,6 +18,8 @@ func _ready():
 	JoinMenu.HostButtonPressed.connect(host_button_pressed.bind())
 	JoinMenu.JoinButtonPressed.connect(join_button_pressed.bind())
 	JoinMenu.LobbyButtonPressed.connect(join_button_pressed.bind())
+	multiplayer.connection_failed.connect(connection_failed.bind())
+	multiplayer.server_disconnected.connect(connection_disconnected.bind())
 	if Globals.useSteam:
 		Steam.lobby_created.connect(_on_lobby_created)
 
@@ -53,19 +55,56 @@ func join_button_pressed(id = null):
 	JoinMenu.hide()
 	
 	if Globals.useSteam:
+		Steam.lobby_joined.connect(_on_lobby_joined.bind())
 		Steam.joinLobby(id)
-		steam_peer.create_client(id, PORT, [])
-		multiplayer.multiplayer_peer = steam_peer
+
 	else:
 		enet_peer.create_client("localhost", PORT)
 		multiplayer.multiplayer_peer = enet_peer
+
+func _on_lobby_joined(lobby: int, permissions: int, locked: bool, response: int):
+	print("on lobby joined")
+	
+	if response == 1:
+		var id = Steam.getLobbyOwner(lobby)
+		if id != Steam.getSteamID():
+			print("Connecting client to socket")
+			connect_socket(id)
+			print("connected")
+	else:
+		var fail = ""
+		match response:
+			2: fail = "lobby no longer exists"
+			3: fail = "you dont have perms to join"
+			4: fail = "lobby is full"
+			5: fail = "man idk panic"
+			6: fail = "banned"
+			7: fail = "you cannot join due to having a limited account"
+			8: fail = "lobby is locked"
+			9: fail = "lobby is community locked"
+			10: fail = "a user in the lobby has blocked you from joining"
+			11: fail = "a user you have blocked is in the lobby"
+		print(fail)
+
+func connect_socket(steamID: int):
+	var err = steam_peer.create_client(steamID, PORT, [])
+	if err == OK:
+		multiplayer.multiplayer_peer = steam_peer
+	else:
+		print("error creating client &s" % str(err))
 
 func add_player(peer_id):
 	var player = Player.instantiate()
 	players[peer_id] = player
 	player.name = str(peer_id)
-	player.position = Vector2(randf_range(0,500), randf_range(0,500))
+	var pos = Vector2(randf_range(0,1000), randf_range(0,500))
+	
 	get_parent().add_child(player)
+	
+	if peer_id == multiplayer.get_unique_id():
+		player.position = pos
+	else:
+		player.init.rpc_id(peer_id, pos)
 
 func remove_player(peer_id):
 	var player = players[peer_id]
@@ -89,3 +128,10 @@ func upnp_setup():
 	
 	print("Success! Join Address: %s" % upnp.query_external_address())
 
+func connection_failed():
+	JoinMenu.display_message("Connection Failed")
+	JoinMenu.show()
+
+func connection_disconnected():
+	JoinMenu.display_message("Disconnected from Server")
+	JoinMenu.show()

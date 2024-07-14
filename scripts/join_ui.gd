@@ -2,6 +2,7 @@ extends Control
 
 @onready var addressEntry = $PanelContainer/MarginContainer/VBoxContainer/AddressEntry
 @onready var upnpBox = $PanelContainer/MarginContainer/VBoxContainer/CheckBox
+@onready var message = $StatusMessage
 
 signal HostButtonPressed
 signal JoinButtonPressed
@@ -15,6 +16,8 @@ func _ready():
 	else:
 		$LobbyList.hide()
 
+func display_message(msg: String):
+	message.text = msg
 
 func get_ip():
 	return addressEntry.text
@@ -39,10 +42,10 @@ func on_lobby_match_list(lobbies):
 	for lobby in lobbies:
 		var lobby_name = Steam.getLobbyData(lobby, "name")
 		var mem_count = Steam.getNumLobbyMembers(lobby)
-		
+		var mem_limit = Steam.getLobbyMemberLimit(lobby)
 		
 		var but = Button.new()
-		but.set_text(str(lobby_name)+" | "+str(mem_count))
+		but.set_text(str(lobby_name)+" | ("+str(mem_count)+"/"+str(mem_limit)+")")
 		but.set_size(Vector2(200,5))
 		but.connect("pressed", func(): LobbyButtonPressed.emit(lobby))
 		

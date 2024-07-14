@@ -3,7 +3,7 @@ extends Node
 var useController = false
 var controllerScheme := 0
 
-var useSteam = true
+var useSteam = false
 var appID := str(480)
 
 
