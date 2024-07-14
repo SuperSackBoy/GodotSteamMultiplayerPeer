@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=3 uid="uid://blrrcgicg321r"]
+
+[ext_resource type="Texture2D" uid="uid://bykr7noa0ecqp" path="res://icon.svg" id="1_4006r"]
+[ext_resource type="Script" path="res://scripts/tank.gd" id="1_fqqa0"]
+[ext_resource type="Script" path="res://scripts/Gun.gd" id="3_vkraf"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0ijk0"]
+size = Vector2(128, 128)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_807je"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("Gun:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
+[node name="Tank" type="CharacterBody2D"]
+collision_mask = 0
+script = ExtResource("1_fqqa0")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_0ijk0")
+
+[node name="Icon" type="Sprite2D" parent="."]
+texture = ExtResource("1_4006r")
+
+[node name="Gun" type="Node2D" parent="."]
+script = ExtResource("3_vkraf")
+
+[node name="GunTex" type="Sprite2D" parent="Gun"]
+position = Vector2(0, -35)
+scale = Vector2(0.232235, 0.852353)
+texture = ExtResource("1_4006r")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_807je")
+visibility_update_mode = 1
